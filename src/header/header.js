@@ -17,13 +17,13 @@ const Header = ({ siteTitle }) => (
       </ul>
       <ul className="flex justify-around mb-10 font-medium">
         <li>
-          <a href={accounts.github} target="_blank">
-            <img src={github} />
+          <a href={accounts.github} target="_blank" rel="noopener noreferrer">
+            <img src={github} alt="Github" />
           </a>
         </li>
         <li>
-          <a href={accounts.twitter} target="_blank">
-            <img src={twitter} />
+          <a href={accounts.twitter} target="_blank" rel="noopener noreferrer">
+            <img src={twitter} alt="Twitter" />
           </a>
         </li>
       </ul>
