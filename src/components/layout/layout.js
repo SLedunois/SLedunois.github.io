@@ -22,8 +22,12 @@ const Layout = ({ children }) => {
     }
   `)
 
+  if (document.location.pathname === "/")
+    document.getElementsByTagName("html")[0].classList.add("homepage")
+  else document.getElementsByTagName("html")[0].classList.remove("homepage")
+
   return (
-    <div className="layout container mx-auto text-black mt-12 mb-12">
+    <div className="layout container mx-auto text-black">
       <Header siteTitle={data.site.siteMetadata.title} />
       <div>
         <main>{children}</main>

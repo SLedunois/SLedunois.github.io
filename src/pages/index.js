@@ -1,15 +1,17 @@
 import React from "react"
-//import { Link } from "gatsby"
 
+import HeaderBubble from "../components/header-bubble/header-bubble"
 import Layout from "../components/layout/layout"
 import SEO from "../components/seo"
 import Description from "../components/description/description"
 
 const IndexPage = () => (
-  <Layout>
-    <SEO title="Home" />
-    <Description />
-  </Layout>
+  <HeaderBubble>
+    <Layout>
+      <SEO title="Home" />
+      <Description />
+    </Layout>
+  </HeaderBubble>
 )
 
 export default IndexPage

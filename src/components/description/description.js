@@ -11,7 +11,7 @@ import data from "../../../data/description.json"
 
 const Description = ({ children }) => {
   return (
-    <div className="mt-16 mb-1 w-3/4 mx-auto text-center text-2xl font-medium">
+    <div className="flex font-medium items-center mx-auto text-2xl text-center w-3/4">
       <p>{data.description}</p>
     </div>
   )

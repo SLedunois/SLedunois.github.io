@@ -1,5 +1,6 @@
 import PropTypes from "prop-types"
 import React from "react"
+import { Link } from "gatsby"
 
 import "./header.css"
 
@@ -9,13 +10,17 @@ import github from "../images/github.svg"
 import twitter from "../images/twitter.svg"
 
 const Header = ({ siteTitle }) => (
-  <header>
+  <header className="mb-20 pt-12">
     <nav className="justify-between flex">
-      <ul className="flex justify-around mb-10 font-medium">
-        <li className="active">Home</li>
-        <li>About</li>
+      <ul className="flex justify-around font-medium">
+        <li className={document.location.pathname === "/" && "active"}>
+          <Link to="/">Home</Link>
+        </li>
+        <li className={document.location.pathname === "/about" && "active"}>
+          <Link to="/about">About</Link>
+        </li>
       </ul>
-      <ul className="flex justify-around mb-10 font-medium">
+      <ul className="flex justify-around font-medium">
         <li>
           <a href={accounts.github} target="_blank" rel="noopener noreferrer">
             <img src={github} alt="Github" />

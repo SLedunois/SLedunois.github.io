@@ -11,3 +11,7 @@
 .container.layout {
   width: 1024px;
 }
+
+html.homepage {
+  background-color: #f4f5f7;
+}
