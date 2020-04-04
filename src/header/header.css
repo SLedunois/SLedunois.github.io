@@ -1,0 +1,19 @@
+header nav ul {
+  width: 15rem;
+}
+
+header nav li {
+  position: relative;
+}
+
+header nav li.active::after {
+  content: " ";
+  width: 24px;
+  height: 4px;
+  background-color: var(--primary);
+  display: block;
+  border-radius: 4px;
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+}

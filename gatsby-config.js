@@ -1,12 +1,20 @@
 module.exports = {
   siteMetadata: {
-    title: `Gatsby Default Starter`,
-    description: `Kick off your next, great Gatsby project with this default starter. This barebones starter ships with the main Gatsby configuration files you might need.`,
-    author: `@gatsbyjs`,
+    title: `Simon LEDUNOIS`,
+    description: `Hi, I'm Simon LEDUNOIS. I author this blog and work as Tech Lead for an open source Virtual Learning Environment platform`,
+    author: `@SLedunois`,
   },
   plugins: [
     `gatsby-plugin-postcss`,
     `gatsby-plugin-react-helmet`,
+    {
+      resolve: "gatsby-plugin-web-font-loader",
+      options: {
+        google: {
+          families: ["Fira Sans", "Bitter"],
+        },
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
