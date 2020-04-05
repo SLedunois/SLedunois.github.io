@@ -12,6 +12,14 @@
   width: 1024px;
 }
 
+html {
+  font-family: "Fira Sans";
+}
+
 html.homepage {
   background-color: #f4f5f7;
+}
+
+p {
+  font-family: "Bitter";
 }

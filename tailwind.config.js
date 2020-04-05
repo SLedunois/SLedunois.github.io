@@ -8,6 +8,7 @@ module.exports = {
       center: true,
     },
     fontFamily: {
+      sans: ["Fira Sans"],
       display: ["Fira Sans", "sans-serif"],
       body: ["Fira Sans", "sans-serif"],
     },
