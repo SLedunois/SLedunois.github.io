@@ -23,6 +23,7 @@ const IndexPage = ({ data }) => (
           description={node.frontmatter.description}
           timeToRead={node.timeToRead}
           technologies={node.frontmatter.technologies}
+          path={node.frontmatter.path}
         />
       ))}
     </div>
