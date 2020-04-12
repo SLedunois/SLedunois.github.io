@@ -10,8 +10,8 @@ import github from "../images/github.svg"
 import twitter from "../images/twitter.svg"
 
 class Header extends React.Component {
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.state = {
       currentPath: "",
     }
@@ -19,8 +19,7 @@ class Header extends React.Component {
 
   componentDidMount() {
     this.setState({
-      currentPath:
-        typeof window !== `undefined` ? document.location.pathname : "",
+      currentPath: this.props.location.pathname,
     })
   }
 
@@ -30,10 +29,10 @@ class Header extends React.Component {
       <header className="mb-20 pt-12">
         <nav className="justify-between flex">
           <ul className="flex justify-around font-medium">
-            <li className={currentPath === "/" && "active"}>
+            <li className={currentPath === "/" ? "active" : undefined}>
               <Link to="/">Home</Link>
             </li>
-            <li className={currentPath === "/about" && "active"}>
+            <li className={currentPath === "/about" ? "active" : undefined}>
               <Link to="/about">About</Link>
             </li>
           </ul>

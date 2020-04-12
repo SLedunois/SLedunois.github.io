@@ -7,10 +7,10 @@ import SEO from "../components/seo"
 import Description from "../components/description/description"
 import Article from "../components/article/article"
 
-const IndexPage = ({ data }) => (
+const IndexPage = ({ data, location }) => (
   <div>
     <HeaderBubble>
-      <Layout>
+      <Layout location={location}>
         <SEO title="Home" />
         <Description />
       </Layout>

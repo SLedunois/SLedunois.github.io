@@ -20,7 +20,7 @@ const Article = props => {
         <div className="mt-1 mb-1 flex items-center">
           {props.technologies &&
             props.technologies.map(technology => (
-              <Technology name={technology} />
+              <Technology name={technology} key={technology} />
             ))}
           {props.timeToRead && <span>{props.timeToRead} min read</span>}
         </div>

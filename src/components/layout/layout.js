@@ -13,11 +13,9 @@ import Header from "../../header/header"
 
 class Layout extends React.Component {
   componentDidMount() {
-    if (typeof window !== `undefined`) {
-      if (document.location.pathname === "/")
-        document.getElementsByTagName("html")[0].classList.add("homepage")
-      else document.getElementsByTagName("html")[0].classList.remove("homepage")
-    }
+    if (this.props.location.pathname === "/")
+      document.getElementsByTagName("html")[0].classList.add("homepage")
+    else document.getElementsByTagName("html")[0].classList.remove("homepage")
   }
 
   render() {
@@ -36,7 +34,7 @@ class Layout extends React.Component {
         `}
         render={data => (
           <div className="layout container mx-auto text-black">
-            <Header siteTitle={data.site.siteMetadata.title} />
+            <Header location={this.props.location} />
             <div>
               <main>{children}</main>
             </div>

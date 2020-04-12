@@ -4,11 +4,10 @@ import { MDXRenderer } from "gatsby-plugin-mdx"
 
 import Layout from "../layout/layout"
 
-const Post = props => {
-  console.log(props)
+const Post = ({ location, data }) => {
   return (
-    <Layout>
-      <MDXRenderer>{props.data.mdx.body}</MDXRenderer>
+    <Layout location={location}>
+      <MDXRenderer>{data.mdx.body}</MDXRenderer>
     </Layout>
   )
 }
