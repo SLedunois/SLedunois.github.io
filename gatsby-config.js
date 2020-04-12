@@ -9,6 +9,7 @@ module.exports = {
       resolve: `gatsby-plugin-mdx`,
       options: {
         extensions: [`.mdx`, `.md`],
+        remarkPlugins: [require("remark-slug")],
       },
     },
     `gatsby-plugin-postcss`,
@@ -17,7 +18,7 @@ module.exports = {
       resolve: "gatsby-plugin-web-font-loader",
       options: {
         google: {
-          families: ["Fira Sans", "Bitter"],
+          families: ["Fira Sans:400,800", "Bitter"],
         },
       },
     },
