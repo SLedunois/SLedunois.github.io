@@ -33,7 +33,7 @@ class Layout extends React.Component {
           }
         `}
         render={data => (
-          <div className="layout container mx-auto text-black">
+          <div className="layout container mx-auto text-black mb-8 pr-6 pl-6">
             <Header location={this.props.location} />
             <div>
               <main>{children}</main>
@@ -44,44 +44,6 @@ class Layout extends React.Component {
     )
   }
 }
-
-/*const Layout = ({ children }) => {
-  useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      window.document &&
-      window.document.createElement
-    ) {
-      if (window.document.location.pathname === "/")
-        window.document
-          .getElementsByTagName("html")[0]
-          .classList.add("homepage")
-      else
-        window.document
-          .getElementsByTagName("html")[0]
-          .classList.remove("homepage")
-    }
-  })
-
-  const data = useStaticQuery(graphql`
-    query SiteTitleQuery {
-      site {
-        siteMetadata {
-          title
-        }
-      }
-    }
-  `)
-
-  return (
-    <div className="layout container mx-auto text-black">
-      <Header siteTitle={data.site.siteMetadata.title} />
-      <div>
-        <main>{children}</main>
-      </div>
-    </div>
-  )
-}*/
 
 Layout.propTypes = {
   children: PropTypes.node.isRequired,

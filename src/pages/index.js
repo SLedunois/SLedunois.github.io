@@ -15,7 +15,7 @@ const IndexPage = ({ data, location }) => (
         <Description />
       </Layout>
     </HeaderBubble>
-    <div className="layout container mx-auto text-black pt-4">
+    <div className="layout container mx-auto text-black pt-4 mb-8">
       {data.allMdx.nodes.map(node => (
         <Article
           key={node.id}

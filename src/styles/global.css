@@ -8,8 +8,12 @@
 
 @tailwind utilities;
 
-.container.layout {
-  width: 1024px;
+@tailwind screens;
+
+@media screen and (min-width: 1024px) {
+  .container.layout {
+    width: 1024px;
+  }
 }
 
 html {
