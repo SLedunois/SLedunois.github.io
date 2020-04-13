@@ -8,20 +8,7 @@ technologies:
 description: "While most people enjoy casino gambling, sports betting, lottery and bingo playing for the fun and excitement it provides, others may experience gambling as an addictive and distractive habit. Statistics show that while 85 percent of the adult population in the US enjoys some type of gambling. "
 ---
 
-Creating tag pages for your blog post is a way to let visitors browse related content.
-
-To add tags to your blog posts, you will first want to have your site set up to turn your markdown pages into blog posts. To get your blog pages set up, see the [tutorial on Gatsby's data layer](/tutorial/part-four/) and [Adding Markdown Pages](/docs/adding-markdown-pages/).
-
-The process will essentially look like this:
-
-1.  Add tags to your `markdown` files
-2.  Write a query to get all tags for your posts
-3.  Make a tags page template (for `/tags/{tag}`)
-4.  Modify `gatsby-node.js` to render pages using that template
-5.  Make a tags index page (`/tags`) that renders a list of all tags
-6.  _(optional)_ Render tags inline with your blog posts
-
-## Add tags to your `markdown` files
+# Add tags to your `markdown` files
 
 You add tags by defining them in the `frontmatter` of your Markdown file. The `frontmatter` is the area at the top surrounded by dashes that includes post data like the title and date.
 
@@ -46,7 +33,7 @@ I went to the zoo today. It was terrible.
 
 If `gatsby develop` is running, restart it so Gatsby can pick up the new fields.
 
-## Write a query to get all tags for your posts
+# Write a query to get all tags for your posts
 
 Now, these fields are available in the data layer. To use field data, query it using `graphql`. All fields are available to query inside `frontmatter`
 
@@ -65,7 +52,7 @@ Try running the following query in Graph<em>i</em>QL (`http://localhost:8000/___
 
 The above query groups posts by `tags`, and returns each `tag` with the number of posts as `totalCount`. As an addition, you could extract some post data in each group if you need to. To keep this tutorial small, you're only using the tag name in your tag pages. Make the tag page template now:
 
-## Make a tags page template (for `/tags/{tag}`)
+# Make a tags page template (for `/tags/{tag}`)
 
 If you followed the tutorial for [Adding Markdown Pages](/docs/adding-markdown-pages/), then this process should sound familiar: Make a tag page template, then use it in `createPages` in `gatsby-node.js` to generate individual pages for the tags in your posts.
 
@@ -312,6 +299,6 @@ export const pageQuery = graphql`
 `
 ```
 
-## _(optional)_ Render tags inline with your blog posts
+# _(optional)_ Render tags inline with your blog posts
 
 The home stretch! Anywhere else you'd like to render your tags, simply add them to the `frontmatter` section of your `graphql` query and access them in your component like any other prop.
