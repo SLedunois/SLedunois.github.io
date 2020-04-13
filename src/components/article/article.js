@@ -10,7 +10,7 @@ import "./article.css"
 const Article = props => {
   return (
     <Link to={props.path}>
-      <div className="shadow-md article p-6 pl-8 pr-8 mt-6 relative">
+      <div className="shadow-md article p-6 pl-8 pr-8 mt-6 relative hover:shadow-xl transition-shadow duration-200 ease-in-out">
         <img
           src={bgMini}
           className="absolute bg-mini"
