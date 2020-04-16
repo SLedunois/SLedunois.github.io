@@ -58,7 +58,7 @@ If you followed the tutorial for [Adding Markdown Pages](/docs/adding-markdown-p
 
 First, you'll add a tags template at `src/templates/tags.js`:
 
-```jsx:title=src/templates/tags.js
+```jsx
 import React from "react"
 import PropTypes from "prop-types"
 
@@ -149,7 +149,7 @@ export const pageQuery = graphql`
 
 Now you've got a template. Great! Assuming you followed the tutorial for [Adding Markdown Pages](/docs/adding-markdown-pages/) and provide a sample `createPages` that generates post pages as well as tag pages. In the site's `gatsby-node.js` file, include `lodash` (`const _ = require('lodash')`) and then make sure your [`createPages`](/docs/node-apis/#createPages) looks something like this:
 
-```js:title=gatsby-node.js
+```js
 const path = require("path")
 const _ = require("lodash")
 
@@ -226,7 +226,7 @@ Some notes:
 
 Your `/tags` page will simply list out all tags, followed by the number of posts with that tag. You can get the data with the first query you wrote earlier, that groups posts by tags:
 
-```jsx:title=src/pages/tags.js
+```jsx
 import React from "react"
 import PropTypes from "prop-types"
 
