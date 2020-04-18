@@ -1,0 +1,5 @@
+.code-block .language {
+  background-color: var(--primary);
+  top: -0.75rem;
+  left: -0.75rem;
+}

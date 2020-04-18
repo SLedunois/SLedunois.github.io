@@ -1,6 +1,7 @@
 import React from "react"
 import Highlight, { defaultProps } from "prism-react-renderer"
 import theme from "../../styles/monokai"
+import "./design-system.css"
 
 const H1 = props => (
   <h1 className="text-3xl font-extrabold mt-4 mb-4" {...props}>
@@ -23,27 +24,37 @@ const H3 = props => (
 const Pre = props => {
   const className = props.children.props.className || ""
   const matches = className.match(/language-(?<lang>.*)/)
+  const language =
+    matches && matches.groups && matches.groups.lang ? matches.groups.lang : ""
   return (
     <Highlight
       {...defaultProps}
       code={props.children.props.children.trim()}
-      language={
-        matches && matches.groups && matches.groups.lang
-          ? matches.groups.lang
-          : ""
-      }
+      language={language}
       theme={theme}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
-        <pre className={`p-8 rounded-lg ${className}`} style={style}>
-          {tokens.map((line, i) => (
-            <div {...getLineProps({ line, key: i })}>
-              {line.map((token, key) => (
-                <span {...getTokenProps({ token, key })} />
-              ))}
+        <div className="relative code-block">
+          {language !== "" && (
+            <div className="absolute language p-2 rounded text-xs shadow-lg uppercase font-bold">
+              {language}
             </div>
-          ))}
-        </pre>
+          )}
+          <pre
+            className={`p-8 rounded-lg ${className} ${
+              language !== "" ? "mt-6" : "mt-4"
+            } mb-4`}
+            style={style}
+          >
+            {tokens.map((line, i) => (
+              <div {...getLineProps({ line, key: i })}>
+                {line.map((token, key) => (
+                  <span {...getTokenProps({ token, key })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        </div>
       )}
     </Highlight>
   )
