@@ -133,8 +133,8 @@ module.exports = {
           "https://61f036bc1d21478887e96a8436cbd080@o386422.ingest.sentry.io/5220697",
         // Optional settings, see https://docs.sentry.io/clients/node/config/#optional-settings
         environment: process.env.NODE_ENV,
-        enabled: true,
-        //enabled: (() =>["production", "stage"].indexOf(process.env.NODE_ENV) !== -1)(),
+        enabled: (() =>
+          ["production", "stage"].indexOf(process.env.NODE_ENV) !== -1)(),
       },
     },
   ],
