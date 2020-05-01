@@ -9,7 +9,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { graphql, StaticQuery } from "gatsby"
 
-import Header from "../../header/header"
+import Header from "../header/header"
 
 class Layout extends React.Component {
   componentDidMount() {
