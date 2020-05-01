@@ -1,4 +1,3 @@
-import PropTypes from "prop-types"
 import React from "react"
 import { Link } from "gatsby"
 
@@ -23,7 +22,7 @@ const Header = () => {
           {Object.keys(accounts).map(account => {
             const image = require(`../../images/${account}.svg`)
             return (
-              <li className="mr-4 ml-4">
+              <li className="mr-4 ml-4 ">
                 <a
                   href={accounts[account]}
                   target="_blank"

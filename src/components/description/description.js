@@ -15,7 +15,7 @@ const Description = ({ children }) => {
     <div className="flex font-medium items-center mx-auto text-2xl text-center w-3/4">
       <div>
         <p>{data.description}</p>
-        <p>
+        <div>
           <ul className="flex items-center justify-center">
             {Object.keys(accounts).map(account => {
               const image = require(`../../images/${account}.svg`)
@@ -32,7 +32,7 @@ const Description = ({ children }) => {
               )
             })}
           </ul>
-        </p>
+        </div>
       </div>
     </div>
   )
