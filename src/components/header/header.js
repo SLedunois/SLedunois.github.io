@@ -1,5 +1,6 @@
 import React from "react"
 import { Link } from "gatsby"
+import { OutboundLink } from "gatsby-plugin-google-analytics"
 
 import "./header.css"
 
@@ -22,14 +23,14 @@ const Header = () => {
           {Object.keys(accounts).map(account => {
             const image = require(`../../images/${account}.svg`)
             return (
-              <li className="mr-4 ml-4 ">
-                <a
+              <li className="mr-4 ml-4" key={account}>
+                <OutboundLink
                   href={accounts[account]}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <img src={image} alt={account} className="w-5" />
-                </a>
+                </OutboundLink>
               </li>
             )
           })}

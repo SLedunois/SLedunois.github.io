@@ -6,6 +6,7 @@
  */
 
 import React from "react"
+import { OutboundLink } from "gatsby-plugin-google-analytics"
 
 import accounts from "../../../data/accounts.json"
 import data from "../../../data/description.json"
@@ -20,14 +21,14 @@ const Description = ({ children }) => {
             {Object.keys(accounts).map(account => {
               const image = require(`../../images/${account}.svg`)
               return (
-                <li className="mr-4 ml-4 mt-8">
-                  <a
+                <li className="mr-4 ml-4 mt-8" key={account}>
+                  <OutboundLink
                     href={accounts[account]}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <img src={image} alt={account} className="w-5" />
-                  </a>
+                  </OutboundLink>
                 </li>
               )
             })}
