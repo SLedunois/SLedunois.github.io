@@ -33,8 +33,7 @@ class Layout extends React.Component {
           }
         `}
         render={data => (
-          <div className="layout container mx-auto text-black mb-8 pr-6 pl-6">
-            <Header location={this.props.location} />
+          <div className="layout container mx-auto text-black mb-8 pr-6 pl-6 pt-8">
             <div>
               <main>{children}</main>
             </div>

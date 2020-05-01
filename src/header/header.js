@@ -32,7 +32,11 @@ class Header extends React.Component {
             <li className={currentPath === "/" ? "active" : undefined}>
               <Link to="/">Home</Link>
             </li>
-            <li className={currentPath === "/about" ? "active" : undefined}>
+            <li
+              className={
+                currentPath.indexOf("/about") !== -1 ? "active" : undefined
+              }
+            >
               <Link to="/about">About</Link>
             </li>
           </ul>

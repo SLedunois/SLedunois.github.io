@@ -10,7 +10,7 @@ import React from "react"
 import "./header-bubble.css"
 
 const HeaderBubble = ({ children }) => {
-  return <div className="bubble mb-20">{children}</div>
+  return <div className="bubble mb-20 pt-12">{children}</div>
 }
 
 export default HeaderBubble

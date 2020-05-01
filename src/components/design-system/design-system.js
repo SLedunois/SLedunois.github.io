@@ -43,7 +43,7 @@ const Pre = props => {
           <pre
             className={`p-8 rounded-lg ${className} ${
               language !== "" ? "mt-6" : "mt-4"
-            } mb-4`}
+            } mb-4 overflow-y-auto text-sm`}
             style={style}
           >
             {tokens.map((line, i) => (

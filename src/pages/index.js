@@ -8,7 +8,7 @@ import Description from "../components/description/description"
 import Article from "../components/article/article"
 
 const IndexPage = ({ data, location }) => (
-  <div>
+  <div className="w-full overflow-x-hidden">
     <HeaderBubble>
       <Layout location={location}>
         <SEO title="Home" />
