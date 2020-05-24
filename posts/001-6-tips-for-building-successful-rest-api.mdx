@@ -1,0 +1,83 @@
+---
+title: "6 tips for building successful REST API"
+date: "2020-05-24"
+path: "/6-tips-for-building-successful-rest-api"
+technologies:
+  - rest
+description: "When you want to design an API, you quickly face the problem of API design. This stage raises a set of issues for which answers are not unanimous. I suggest you some tips on how to build a successful REST API."
+---
+
+Enterprises and open source products write API not only to open outwards their application but also to move toward a new business model. If their business plan authorizes it, building an API is a major and essential feature. Starting from the promise that your API has to be client-side, it must be affordable, in other words, its ability to suggest its use.
+Here are some tips for building a successful REST API. Those tips are an extraction from my personal experience and are questionable.
+
+# Add versioning
+As every API is about to evolve, it's essential to version it. You can add versioning in several ways:
+- In the Uniform Resource Locator (URL): /v1/books, /v2/books, ...
+- In a custom HTTP header: Version: 1.0, Version: 2.0, ...
+- In a custom query string parameter: /books?v=1, /books?v=2, ...
+
+Update the version number on major breaking changes. Do not send in production changes that can create bugs in client applications. 
+
+# Avoid verbs in URL, use HTTP verbs instead
+Contrary to SOAP/RPC, REST recommends HTTP as an application protocol to standardize and make the interactions between systems consistent.
+To preserve REST semantic, we will focus on the usage of HTTP verbs rather than verbs addition in the URL. So writing GET /books is a better way than writing /getBooks.
+
+Here is the list of the most used HTTP verbs:
+- GET to retrieve data;
+- POST for the resource creation;
+- PUT to process a complete update OR the creation of the resource if it not created;
+- PATCH to process a partial update;
+- DELETE to delete the resource.
+
+If you want to read more about HTTP verbs, please check RFC2616.
+
+# Use HTTP codes
+If HTTP verbs improve query readability, we use HTTP codes to interpret the result. Every code has its semantic significance. The RFC sorts codes in several classes:
+- 2xx: success;
+- 3xx: redirection;
+- 4xx: client error;
+- 5xx: server error.
+
+In a REST API, the most used codes are :
+- 200 OK. The request has succeeded.
+- 201 Created. The request has been fulfilled and resulted in a new resource being created.
+- 202 Accepted. The request has been accepted for processing. but the processing has not been completed.
+- 204 Not Content. The server has fulfilled the request but does not need to return an entity-body.
+- 206 Partial Content. The server has fulfilled the partial GET request for the resource.
+- 400 Bad Request. The request could not be understood by the server due to malformed syntax.
+- 401 Unauthorized. The request requires user authentication.
+- 403 Forbidden. The server understood the request but is refusing to fulfill it.
+- 404 Not Found. The server has not found anything matching the Request-URI.
+- 500 Internal Server Error. The server encountered an unexpected condition which prevented it from fulfilling the request.
+
+# Use plurals
+Use plurals in keywords. Do not switch between singular and plural. It decreases to the readability and the comprehension of your API contract. The use of the plural will make it consistent when handling tow types of resources:
+- collections;
+- instances.
+
+For example, if your API manage books, use:
+- /v1/books to retrieve a books collection;
+- /v1/books/1 to retrieve an instance of a book (book with identifier 1).
+
+# Use query string
+The query string is a part of a URL that assigns values to specified parameters. REST API use query string to add features like:
+- Pagination;
+- Filters;
+- Sort;
+- ...
+
+Introduce the query string from the design stage. You can not predict how your API growing and the amount of data exposed by this one.
+The query string usage is no explained in the article. Indeed there are many ways to perform it and each company has its example. 
+
+# Documentation
+Do not underestimate documentation. Mostly, the documentation is the main difference between a great or a poor API. There are many tools you can use to design and build your documentation. For example :
+- <a href="https://swagger.io" target="_blank">Swagger</a>. Open-source API development toolset. It provides tools to design, build, and document API.
+- <a href="https://stoplight.io" target="_blank">Stoplight</a>. An API Design Management platform powering tools like a documentation generator and an API Design Studio.
+- <a href="https://www.postman.com" target="_blank">Postman</a>. A collaboration platform for API development. It provides an awesome tool to test your API.
+
+This is not an exhaustive tools list. For smaller API, an up to date markdown sheet is also a great instrument.
+<br /><br />
+This article is based on my knowledge and the content can be challenged. Remember that if you want to read more about REST API, here are my sources :
+
+- <a href="https://www.ietf.org/rfc/rfc2616.txt" target="_blank">RFC2616</a>;
+- <a href="https://martinfowler.com/articles/richardsonMaturityModel.html" target="_blank">Richardson Maturity Model by Martin Fowler</a>.

@@ -3,25 +3,29 @@ import Highlight, { defaultProps } from "prism-react-renderer"
 import theme from "../../styles/monokai"
 import "./design-system.css"
 
-const H1 = props => (
+const h1 = props => (
   <h1 className="text-3xl font-extrabold mt-4 mb-4" {...props}>
     {props.children}
   </h1>
 )
 
-const H2 = props => (
+const h2 = props => (
   <h2 className="text-2xl font-bold mt-3 mb-3" {...props}>
     {props.children}
   </h2>
 )
 
-const H3 = props => (
+const h3 = props => (
   <h3 className="text-xl font-semibold mt-2 mb-2" {...props}>
     {props.children}
   </h3>
 )
 
-const Pre = props => {
+const ul = props => <ul className="mb-4 mt-2">{props.children}</ul>
+
+const li = props => <li className="pl-4">{props.children}</li>
+
+const pre = props => {
   const className = props.children.props.className || ""
   const matches = className.match(/language-(?<lang>.*)/)
   const language =
@@ -61,8 +65,10 @@ const Pre = props => {
 }
 
 export default {
-  h1: H1,
-  h2: H2,
-  h3: H3,
-  pre: Pre,
+  h1,
+  h2,
+  h3,
+  ul,
+  li,
+  pre,
 }

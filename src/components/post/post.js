@@ -19,9 +19,11 @@ const Post = ({ location, data }) => {
         description={frontmatter.description}
       />
       <Toc headings={tableOfContents.items} />
-      <MDXProvider components={DesignSystem}>
-        <MDXRenderer headings={headings}>{body}</MDXRenderer>
-      </MDXProvider>
+      <div className="post-content">
+        <MDXProvider components={DesignSystem}>
+          <MDXRenderer headings={headings}>{body}</MDXRenderer>
+        </MDXProvider>
+      </div>
     </Layout>
   )
 }
