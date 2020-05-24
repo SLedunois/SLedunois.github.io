@@ -7,6 +7,7 @@
   "dependencies": {
     "@mdx-js/mdx": "^1.5.8",
     "@mdx-js/react": "^1.5.8",
+    "execa": "^4.0.2",
     "gatsby": "^2.19.25",
     "gatsby-image": "^2.2.39",
     "gatsby-plugin-google-analytics": "^2.3.0",
@@ -49,7 +50,7 @@
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
-    "deploy": "gatsby build && gh-pages -d public -b master"
+    "deploy": "gatsby build && node scripts/gh-pages-deploy.js"
   },
   "repository": {
     "type": "git",

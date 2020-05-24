@@ -129,8 +129,7 @@ module.exports = {
     {
       resolve: "gatsby-plugin-sentry",
       options: {
-        dsn:
-          "https://61f036bc1d21478887e96a8436cbd080@o386422.ingest.sentry.io/5220697",
+        dsn: "",
         // Optional settings, see https://docs.sentry.io/clients/node/config/#optional-settings
         environment: process.env.NODE_ENV,
         enabled: (() =>
@@ -141,7 +140,7 @@ module.exports = {
       resolve: `gatsby-plugin-google-analytics`,
       options: {
         // The property ID; the tracking code won't be generated without it
-        trackingId: "UA-165309394-1",
+        trackingId: "",
         // Defines where to place the tracking script - `true` in the head and `false` in the body
         head: false,
         // Setting this parameter is optional
