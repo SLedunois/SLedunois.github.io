@@ -4,6 +4,16 @@
   left: -0.75rem;
 }
 
+.post-content code {
+  background-color: rgba(255, 204, 0, 0.1);
+  padding: 0.15rem 0.35rem;
+  font-size: 0.9rem;
+}
+
+.post-content ul {
+  font-family: "Bitter";
+}
+
 .post-content ul li::before {
   content: "~";
   padding-right: 0.5rem;
