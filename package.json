@@ -22,6 +22,7 @@
     "gatsby-source-filesystem": "^2.1.46",
     "gatsby-transformer-remark": "^2.7.1",
     "gatsby-transformer-sharp": "^2.3.13",
+    "gh-pages": "^2.2.0",
     "github-slug": "^2.0.0",
     "prism-react-renderer": "^1.0.2",
     "prismjs": "^1.20.0",
@@ -47,7 +48,8 @@
     "start": "npm run develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
+    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
+    "deploy": "gatsby build && gh-pages -d public -b master"
   },
   "repository": {
     "type": "git",
