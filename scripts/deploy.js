@@ -1,5 +1,7 @@
 const execa = require("execa")
-const fs = require("fs")(async () => {
+const fs = require("fs")
+
+const deploy = async () => {
   try {
     await execa("git", ["checkout", "--orphan", "gh-pages"])
     console.log("Building...")
@@ -18,4 +20,6 @@ const fs = require("fs")(async () => {
     console.log(e.message)
     process.exit(1)
   }
-})()
+}
+
+deploy()
