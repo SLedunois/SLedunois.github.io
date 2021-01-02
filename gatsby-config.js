@@ -18,7 +18,7 @@ module.exports = {
       resolve: "gatsby-plugin-web-font-loader",
       options: {
         google: {
-          families: ["Fira Sans:400,600,800", "Bitter"],
+          families: ["Fira Sans:400,600,800", "Bitter:400,600,800"],
         },
       },
     },

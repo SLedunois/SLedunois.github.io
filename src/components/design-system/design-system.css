@@ -5,9 +5,13 @@
 }
 
 .post-content code {
-  background-color: rgba(255, 204, 0, 0.1);
+  background-color: rgba(255, 204, 0, 0.2);
   padding: 0.15rem 0.35rem;
   font-size: 0.9rem;
+}
+
+.post-content blockquote {
+  background-color: rgba(255, 204, 0, 0.2);
 }
 
 .post-content ul {

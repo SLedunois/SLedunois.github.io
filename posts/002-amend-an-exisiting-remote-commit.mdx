@@ -1,0 +1,61 @@
+---
+title: "Amend an existing remote commit"
+date: "2021-01-02"
+path: "/amend-an-existing-remote-commit"
+technologies:
+  - git
+description: "Learn how to amend an existing commit in remote repository."
+---
+# Why ?
+A day at work, Github sends us a security notification telling us a developer pushed a secret to a remote repository. None of us sees it because the developer pushed the commit a year ago. To fix this, we had two solutions : 
+- Change the secret;
+- Edit the commit and rewrite history.
+Because the target server was a production server, we choose the first option.
+
+Let's imagine we have a git history like this:
+```git
+eade3eb
+14a5d7f
+...
+24bbfca
+3f1ed30
+1dbbd2e
+94831b3
+16e7ca6 # This is the commit containing the secret key
+16375d8
+```
+
+The biggest issue is the commit date back to a year ago and the history grows up fastly. you need to get back in history, pick the commit, edit it, and push the fix without conflict. After several searches, here's how to do it :
+
+# Checkout the commit
+First, you will use the rebase git command to checkout the commit with hash `16e7ca6`running `git rebase -i '16e7ca6^'`. Please note the caret `^` at the end of the command line because we need actually to rebase back to the commit before the one you wish to modify. Use the `-i` option to rebase with interactive mode.
+<br />
+
+Once the previous command ends, you should see the list of all commits in the history (named by hashes) : 
+```git
+pick 16e7ca6
+pick 94831b3 
+pick 1dbbd2e
+pick 24bbfca
+...
+pick 14a5d7f
+pick eade3eb
+```
+# Manage your rebase
+Change `pick` to `edit` on the line mentioning `16e7ca6`. Save your update. At this moment Git will interpret and automatically execute commands in files. It seems that Git will checkout your branch to your commit `16e7ca6`.
+
+Fix your code, save your files, and amend your commit running: 
+```shell 
+git commit --all --amend --no-edit
+```
+
+# End your rebase
+Continue your rebase with the option `--continue`: 
+```shell 
+git rebase --continue
+```
+This will end your rebase (if no conflicts) and reapply all commits to the latest.
+
+> Amending an old commit will update every SHA-1 of your history. Pushing this update needs to force push and rewrite all your history. Take care of it you can easily lose data or override commits !
+
+To push and override your remote existing repository, just run `git push --force`.

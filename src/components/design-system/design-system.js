@@ -64,6 +64,12 @@ const pre = props => {
   )
 }
 
+const blockquote = props => (
+  <blockquote className="mt-6 mb-6 p-6 font-extrabold rounded-lg">
+    {props.children}
+  </blockquote>
+)
+
 export default {
   h1,
   h2,
@@ -71,4 +77,5 @@ export default {
   ul,
   li,
   pre,
+  blockquote
 }
