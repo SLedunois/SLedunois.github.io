@@ -8,6 +8,7 @@ jobs:
     name: Deploying to Github Pages
     runs-on: ubuntu-latest
     env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
       SENTRY_SECRET: ${{ secrets.SENTRY_SECRET }}
       GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
     steps:
