@@ -24,12 +24,9 @@ jobs:
       - name: Build gatsby site
         run: npm run build
 
-      - name: Deploy site
-        run: |
-          git config user.name "SLedunois" && git config user.email "simon.ledunois@gmail.com"
-          git remote add ci https://sledunois:${{ secrets.CI_TOKEN }}@github.com/SLedunois/sledunois.github.io.git
-          git --work-tree public add --all
-          git --work-tree public commit -m "Deploy sledunois.github.io"
-          git push ci HEAD:master --force
-          rm -r public
-          git checkout -f master
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages  # deploying branch
