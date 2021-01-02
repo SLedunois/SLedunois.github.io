@@ -65,7 +65,7 @@ const pre = props => {
 }
 
 const blockquote = props => (
-  <blockquote className="mt-6 mb-6 p-6 font-extrabold rounded-lg">
+  <blockquote className="mt-6 mb-6 p-6 font-semibold rounded-lg">
     {props.children}
   </blockquote>
 )
