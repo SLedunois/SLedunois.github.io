@@ -1,0 +1,419 @@
+---
+title: "Create a simple Kubernetes cluster"
+date: "2021-01-03"
+path: "/create-a-simple-kubernetes-cluster"
+technologies:
+  - kubernetes
+description: "Kubernetes is a portable, extensible, open-source platform for managing containerized workloads and services, that facilitates both declarative configuration and automation. It has a large, rapidly growing ecosystem. Kubernetes services, support, and tools are widely available. In this tutorial, I create and deploy a simple Kubernetes cluster containing a Hello World NodeJS application."
+---
+
+# Requirements
+I need 3 Linux servers based on Debian distribution (you can choose another distribution if needed) named: 
+- k8smaster
+- k8snode1
+- k8snode2
+
+Those servers need to contain a user dedicated to cluster management (I call it "cluster"). 
+
+# Docker installation
+Install Docker by running the following commands.
+```shell
+apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add -
+add-apt-repository "deb https://download.docker.com/linux/debian stretch stable"
+apt-get update
+apt-get install -y docker-ce
+ ``` 
+
+# Kubernetes installation
+Install Kubernetes by running the following commands.
+```shell
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+add-apt-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+apt-get update
+apt-get install -y kubelet kubeadm kubectl
+```
+
+# Configure servers hostname
+Configure hostname file editing `/etc/hostname` file on `k8snode1` and `k8snode2`. 
+```shell
+sudo echo "k8snode<X>" > /etc/hostname # X is your node number
+```
+
+Edit `/etc/hosts` files.
+```shell
+127.0.0.1    localhost k8snode<X>
+```
+Configure k8smaster server by executing previous commands replacing `k8snode<X>` with k8smaster.
+
+# Configure Kubernetes Cluster
+This stage will create and configure the Kubernetes cluster on each server. Remind servers are named : 
+- `k8smaster`: cluster master server. It controls and manages the cluster
+- `k8snode1`: cluster application first node
+- `k8snode2`: cluster application seconde node
+
+## Cluster initialization
+From the k8smaster server, init the cluster master by running the following commands.
+```shell
+kubeadm init --pod-network-cidr=10.244.0.0/16 –apiserver-advertise-address=<k8smaster_ip_address>
+```
+If everything goes well, you should see an output like this : 
+```shell
+root@k8smaster:~$ kubeadm init --pod-network-cidr=10.244.0.0/16 –apiserver-advertise-address=192.168.1.25
+[init] Using Kubernetes version: v1.13.4
+[preflight] Running pre-flight checks
+    [WARNING SystemVerification]: this Docker version is not on the list of validated versions: 18.09.3. Latest validated version: 18.06
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+ 
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Activating the kubelet service
+[certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "ca" certificate and key
+[certs] Generating "apiserver-kubelet-client" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [k8smaster kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 192.168.1.25]
+[certs] Generating "front-proxy-ca" certificate and key
+[certs] Generating "front-proxy-client" certificate and key
+[certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [k8smaster localhost] and IPs [192.168.1.25 127.0.0.1 ::1]
+[certs] Generating "etcd/server" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [k8smaster localhost] and IPs [192.168.1.25 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "sa" key and public key
+[kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+[kubeconfig] Writing "admin.conf" kubeconfig file
+[kubeconfig] Writing "kubelet.conf" kubeconfig file
+[kubeconfig] Writing "controller-manager.conf" kubeconfig file
+[kubeconfig] Writing "scheduler.conf" kubeconfig file
+[control-plane] Using manifest folder "/etc/kubernetes/manifests"
+[control-plane] Creating static Pod manifest for "kube-apiserver"
+[control-plane] Creating static Pod manifest for "kube-controller-manager"
+[control-plane] Creating static Pod manifest for "kube-scheduler"
+[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
+[kubelet-check] Initial timeout of 40s passed.
+[apiclient] All control plane components are healthy after 47.005054 seconds
+[uploadconfig] storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+[kubelet] Creating a ConfigMap "kubelet-config-1.13" in namespace kube-system with the configuration for the kubelets in the cluster
+[patchnode] Uploading the CRI Socket information "/var/run/dockershim.sock" to the Node API object "k8smaster" as an annotation
+[mark-control-plane] Marking the node k8smaster as control-plane by adding the label "node-role.kubernetes.io/master=''"
+[mark-control-plane] Marking the node k8smaster as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
+[bootstrap-token] Using token: ltu5mp.69fn9xbc9fhwi56o
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstraptoken] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstraptoken] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstraptoken] configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstraptoken] creating the "cluster-info" ConfigMap in the "kube-public" namespace
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+ 
+Your Kubernetes master has initialized successfully!
+ 
+To start using your cluster, you need to run the following as a regular user:
+ 
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+ 
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+ 
+You can now join any number of machines by running the following on each node
+as root:
+ 
+  kubeadm join 192.168.1.25:6443 --token ltu5mp.69fn9xbc9fhwi56o --discovery-token-ca-cert-hash sha256:8974e6da7669232565f49bdb03b8632b5c46954dbcac24b76867d24a51ff8fd2
+```
+
+## Configure user manager
+Log with your cluster user and run :
+```shell
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+## Configure your cluster network
+Kubernetes needs a pod to manage its network. Pods are small computer unit that can be deployed and managed by Kubernetes. In this example, I use a pod named Flannel. Find every network pods reading the [Kubernetes network documentation](https://kubernetes.io/docs/concepts/cluster-administration/networking/).
+<br />
+Install your Flannel network running :
+
+```shell
+cluster@k8smaster:~$ kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+podsecuritypolicy.extensions/psp.flannel.unprivileged created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.extensions/kube-flannel-ds-amd64 created
+daemonset.extensions/kube-flannel-ds-arm64 created
+daemonset.extensions/kube-flannel-ds-arm created
+daemonset.extensions/kube-flannel-ds-ppc64le created
+daemonset.extensions/kube-flannel-ds-s390x created
+```
+
+Once your network initialized, check your cluster state:
+```shell
+cluster@k8smaster:~$ kubectl get pods --all-namespaces -o wide
+NAMESPACE     NAME                                READY   STATUS    RESTARTS   AGE     IP             NODE        NOMINATED NODE   READINESS GATES
+kube-system   coredns-86c58d9df4-lwrvf            1/1     Running   0          16m     10.244.0.3     k8smaster   <none>           <none>
+kube-system   coredns-86c58d9df4-vzw5q            1/1     Running   0          16m     10.244.0.2     k8smaster   <none>           <none>
+kube-system   etcd-k8smaster                      1/1     Running   0          16m     192.168.1.25   k8smaster   <none>           <none>
+kube-system   kube-apiserver-k8smaster            1/1     Running   0          16m     192.168.1.25   k8smaster   <none>           <none>
+kube-system   kube-controller-manager-k8smaster   1/1     Running   1          16m     192.168.1.25   k8smaster   <none>           <none>
+kube-system   kube-flannel-ds-amd64-sdhxk         1/1     Running   0          3m33s   192.168.1.25   k8smaster   <none>           <none>
+kube-system   kube-proxy-b68zq                    1/1     Running   0          16m     192.168.1.25   k8smaster   <none>           <none>
+kube-system   kube-scheduler-k8smaster            1/1     Running   1          16m     192.168.1.25   k8smaster   <none>           <none>
+```
+```shell
+cluster@k8smaster:~$ kubectl get nodes
+NAME        STATUS   ROLES    AGE   VERSION
+k8smaster   Ready    master   18m   v1.13.4
+```
+Currently, k8snode1 and k8snode2 are out of the cluster. You only see system pods and the k8smaster node.
+
+## Add both nodes in the cluster
+Note Kubernetes print the command to add a node in a cluster at the end of cluster initialization. Log to k8snode1 and k8snode2 and execute the following command.
+```shell
+kubeadm join 192.168.1.25:6443 --token ltu5mp.69fn9xbc9fhwi56o --discovery-token-ca-cert-hash sha256:8974e6da7669232565f49bdb03b8632b5c46954dbcac24b76867d24a51ff8fd2
+```
+```shell
+cluster@k8smaster:~$ssh root@k8snode1
+Linux k8snode1 4.9.0-8-amd64 #1 SMP Debian 4.9.144-3.1 (2019-02-19) x86_64
+ 
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+ 
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Sun Mar  3 16:12:52 2019 from 192.168.1.16
+root@k8snode1:~# kubeadm join 192.168.1.25:6443 --token ltu5mp.69fn9xbc9fhwi56o --discovery-token-ca-cert-hash sha256:8974e6da7669232565f49bdb03b8632b5c46954dbcac24b76867d24a51ff8fd2
+[preflight] Running pre-flight checks
+    [WARNING SystemVerification]: this Docker version is not on the list of validated versions: 18.09.3. Latest validated version: 18.06
+[discovery] Trying to connect to API Server "192.168.1.25:6443"
+[discovery] Created cluster-info discovery client, requesting info from "https://192.168.1.25:6443"
+[discovery] Requesting info from "https://192.168.1.25:6443" again to validate TLS against the pinned public key
+[discovery] Cluster info signature and contents are valid and TLS certificate validates against pinned roots, will use API Server "192.168.1.25:6443"
+[discovery] Successfully established connection with API Server "192.168.1.25:6443"
+[join] Reading configuration from the cluster...
+[join] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -oyaml'
+[kubelet] Downloading configuration for the kubelet from the "kubelet-config-1.13" ConfigMap in the kube-system namespace
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Activating the kubelet service
+[tlsbootstrap] Waiting for the kubelet to perform the TLS Bootstrap...
+[patchnode] Uploading the CRI Socket information "/var/run/dockershim.sock" to the Node API object "k8snode1" as an annotation
+ 
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+ 
+Run 'kubectl get nodes' on the master to see this node join the cluster.
+```
+Once you execute the commands on a node, check your cluster nodes state in the master server.
+```shell
+cluster@k8smaster:~$ kubectl get nodes
+NAME        STATUS     ROLES    AGE   VERSION
+k8smaster   Ready      master   22m   v1.13.4
+k8snode1    NotReady   <none>   47s   v1.13.4
+```
+Your node is now in your cluster! Execute the same command on the second node.
+
+## Few commands to manage your cluster
+- `kubeadm reset -f`: delete all your cluster configuration on the node. It hard reset your cluster node.
+- `kubectl delete node <node_name>`: delete given node from your cluster, but keep your configuration.
+
+# Install Kubernetes Dashboard
+On your master server, install the Kubernetes dashboard by running the following commands.
+```shell
+cluster@k8smaster:~$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+secret/kubernetes-dashboard-certs created
+serviceaccount/kubernetes-dashboard created
+role.rbac.authorization.k8s.io/kubernetes-dashboard-minimal created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard-minimal created
+deployment.apps/kubernetes-dashboard created
+service/kubernetes-dashboard created
+```
+Initialize the dashboard by creating a folder `.kubedashboard-config` on the master and add those two files:
+- `admin-user.yml`
+- `admin-role.yml`
+
+```shell
+mkdir ~/.kubedashboard-config
+cd ~/.kubedashboard-config
+touch admin-user.yml
+touch admin-role.yml
+```
+admin-user.yml:
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+```
+admin-role.yml:
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+```
+Change your cluster configuration from the master using:
+```shell
+cluster@k8smaster:~/.kubedashboard-config$ kubectl apply -f admin-user.yml
+serviceaccount/admin created
+cluster@k8smaster:~/.kubedashboard-config$ kubectl apply -f admin-role.yml
+clusterrolebinding.rbac.authorization.k8s.io/admin created
+```
+To connect to your dashboard, retrieve your login token.
+```shell
+cluster@k8smaster:~/.kubedashboard-config$ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-8ncll
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: 634db938-3dd0-11e9-83e9-0800273a23b5
+ 
+Type:  kubernetes.io/service-account-token
+ 
+Data
+====
+ca.crt:     1025 bytes
+namespace:  11 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLThuY2xsIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI2MzRkYjkzOC0zZGQwLTExZTktODNlOS0wODAwMjczYTIzYjUiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.R5T_fighTe1vaZF_--gGlWEfd4zg8iv-E4DydXDKK02zI4jMD7DL6YMWyPVGZPkgeGznuM20DGe1Af_oYOpKaBAipsjTEChNLVrDiOAZvYUEMCjsmfg2HKz5iVT5e94zVG07MrSQqv7N4W7CL82SJElc8qMaJlmyOAavC1RHdvoBJTyMi4w3mp5IFPdYlXGXlw20qV6FfchgeXtpIGrB1RWc0kkMZgBm5cjTtDx4LEoqo3JIkCRqaeHZeWY2pd7XbXWUiyOAWj54BneMyghYftptFTx4nRUteS_RAAHU4dDum8jcOEjrDL-lVwJXfVgNTCDK5zz-IThnj1xmF9t9JA
+```
+Copy the token and run the dashboard.
+```shell
+cluster@k8smaster:~/.kubedashboard-config$ kubectl proxy
+Starting to serve on 127.0.0.1:8001
+```
+Once the dashboard starts, create an ssh tunnel. AS the dashboard is unreachable outside of your cluster, create an ssh tunnel.
+```shell
+ssh -L 8001:localhost:8001 cluster@k8smaster
+```
+You can now log in to your dashboard on [localhost:8001](http://127.0.0.1:8001).
+
+# Deploy your cluster
+
+## Image creation
+Because it is a Kubernetes experimentation, I store the image on the k8smaster. Create a folder image, add an app.js and a Dockerfile.
+```shell
+mkdir ~/image
+cd ~/image
+touch app.js
+touch Dockerfile
+```
+
+```js
+var http = require("http");
+ 
+var handleRequest = function(request, response) {
+  console.log("Received request for URL: " + request.url);
+  response.writeHead(200);
+  response.end("Hello World!");
+};
+var www = http.createServer(handleRequest);
+www.listen(8080);
+```
+
+```Dockerfile
+FROM node
+EXPOSE 8080
+COPY app.js .
+CMD node app.js
+```
+
+Launch image creation.
+```shell
+cluster@k8smaster:~/image$ docker build -t helloworld-k8s .
+Sending build context to Docker daemon  3.072kB
+Step 1/4 : FROM node
+latest: Pulling from library/node
+741437d97401: Pull complete
+34d8874714d7: Pull complete
+0a108aa26679: Pull complete
+7f0334c36886: Pull complete
+49ea0d2b5c48: Pull complete
+90b64fb1507f: Pull complete
+6bdcc654ac0b: Pull complete
+453eaa93fbdc: Pull complete
+Digest: sha256:886746fb8d0a81ba0118c4cf0eaf9875d6a52d5e915fe4f1bc8b50419a5d2ba7
+Status: Downloaded newer image for node:latest
+ ---> dd913630b38a
+Step 2/4 : EXPOSE 8080
+ ---> Running in 5c5109fb5312
+Removing intermediate container 5c5109fb5312
+ ---> fed36cdcc7ba
+Step 3/4 : COPY app.js .
+ ---> fe6bbf3e5ffc
+Step 4/4 : CMD node app.js
+ ---> Running in 57a193ac5f90
+Removing intermediate container 57a193ac5f90
+ ---> 61e6044df293
+Successfully built 61e6044df293
+Successfully tagged helloworld-k8s:latest
+```
+
+Once process ends, check your image state.
+```shell
+cluster@k8smaster:~/image$ docker images
+REPOSITORY               TAG                 IMAGE ID            CREATED             SIZE
+helloworld-k8s           latest              61e6044df293        32 seconds ago      916MB
+node                     latest              dd913630b38a        38 hours ago        916MB
+k8s.gcr.io/kube-proxy    v1.13.4             fadcc5d2b066        3 days ago          80.3MB
+quay.io/coreos/flannel   v0.11.0-amd64       ff281650a721        4 weeks ago         52.6MB
+k8s.gcr.io/pause         3.1                 da86e6ba6ca1        14 months ago       742kB
+```
+
+## Configure your deployment
+Create a folder k8s-deployment and a deployment.yml file. This file describes your cluster and contains all your cluster configuration.
+```shell
+mkdir ~/k8s-deployment
+cd ~/k8s-deployment
+touch deployment.yml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld-k8s-deployment
+spec:
+  selector:
+    matchLabels:
+      app: helloworld-k8s-label
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: node
+          imagePullPolicy: Never
+          image: helloworld-k8s:latest
+          ports:
+            - containerPort: 8080
+    metadata:
+      labels:
+        app: helloworld-k8s-label
+```
+
+Launch deployment by executing the following command.
+```shell
+cluster@k8smaster:~/k8s-deployment$ kubectl create -f deployment.yml
+deployment.apps/helloworld-k8s-deployment created
+```
+That it, your Kubernetes cluster is running !
