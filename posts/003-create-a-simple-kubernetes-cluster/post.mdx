@@ -17,7 +17,7 @@ Those servers need to contain a user dedicated to cluster management (I call it 
 
 # Docker installation
 Install Docker by running the following commands.
-```shell
+```bash
 apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
 curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add -
 add-apt-repository "deb https://download.docker.com/linux/debian stretch stable"
@@ -27,7 +27,7 @@ apt-get install -y docker-ce
 
 # Kubernetes installation
 Install Kubernetes by running the following commands.
-```shell
+```bash
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 add-apt-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 apt-get update
@@ -36,12 +36,12 @@ apt-get install -y kubelet kubeadm kubectl
 
 # Configure servers hostname
 Configure hostname file editing `/etc/hostname` file on `k8snode1` and `k8snode2`. 
-```shell
+```bash
 sudo echo "k8snode<X>" > /etc/hostname # X is your node number
 ```
 
 Edit `/etc/hosts` files.
-```shell
+```bash
 127.0.0.1    localhost k8snode<X>
 ```
 Configure k8smaster server by executing previous commands replacing `k8snode<X>` with k8smaster.
@@ -54,11 +54,11 @@ This stage will create and configure the Kubernetes cluster on each server. Remi
 
 ## Cluster initialization
 From the k8smaster server, init the cluster master by running the following commands.
-```shell
+```bash
 kubeadm init --pod-network-cidr=10.244.0.0/16 –apiserver-advertise-address=<k8smaster_ip_address>
 ```
 If everything goes well, you should see an output like this : 
-```shell
+```bash
 root@k8smaster:~$ kubeadm init --pod-network-cidr=10.244.0.0/16 –apiserver-advertise-address=192.168.1.25
 [init] Using Kubernetes version: v1.13.4
 [preflight] Running pre-flight checks
@@ -132,7 +132,7 @@ as root:
 
 ## Configure user manager
 Log with your cluster user and run :
-```shell
+```bash
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -143,7 +143,7 @@ Kubernetes needs a pod to manage its network. Pods are small computer unit that 
 <br />
 Install your Flannel network running :
 
-```shell
+```bash
 cluster@k8smaster:~$ kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 podsecuritypolicy.extensions/psp.flannel.unprivileged created
 clusterrole.rbac.authorization.k8s.io/flannel created
@@ -158,7 +158,7 @@ daemonset.extensions/kube-flannel-ds-s390x created
 ```
 
 Once your network initialized, check your cluster state:
-```shell
+```bash
 cluster@k8smaster:~$ kubectl get pods --all-namespaces -o wide
 NAMESPACE     NAME                                READY   STATUS    RESTARTS   AGE     IP             NODE        NOMINATED NODE   READINESS GATES
 kube-system   coredns-86c58d9df4-lwrvf            1/1     Running   0          16m     10.244.0.3     k8smaster   <none>           <none>
@@ -170,7 +170,7 @@ kube-system   kube-flannel-ds-amd64-sdhxk         1/1     Running   0          3
 kube-system   kube-proxy-b68zq                    1/1     Running   0          16m     192.168.1.25   k8smaster   <none>           <none>
 kube-system   kube-scheduler-k8smaster            1/1     Running   1          16m     192.168.1.25   k8smaster   <none>           <none>
 ```
-```shell
+```bash
 cluster@k8smaster:~$ kubectl get nodes
 NAME        STATUS   ROLES    AGE   VERSION
 k8smaster   Ready    master   18m   v1.13.4
@@ -179,10 +179,10 @@ Currently, k8snode1 and k8snode2 are out of the cluster. You only see system pod
 
 ## Add both nodes in the cluster
 Note Kubernetes print the command to add a node in a cluster at the end of cluster initialization. Log to k8snode1 and k8snode2 and execute the following command.
-```shell
+```bash
 kubeadm join 192.168.1.25:6443 --token ltu5mp.69fn9xbc9fhwi56o --discovery-token-ca-cert-hash sha256:8974e6da7669232565f49bdb03b8632b5c46954dbcac24b76867d24a51ff8fd2
 ```
-```shell
+```bash
 cluster@k8smaster:~$ssh root@k8snode1
 Linux k8snode1 4.9.0-8-amd64 #1 SMP Debian 4.9.144-3.1 (2019-02-19) x86_64
  
@@ -217,7 +217,7 @@ This node has joined the cluster:
 Run 'kubectl get nodes' on the master to see this node join the cluster.
 ```
 Once you execute the commands on a node, check your cluster nodes state in the master server.
-```shell
+```bash
 cluster@k8smaster:~$ kubectl get nodes
 NAME        STATUS     ROLES    AGE   VERSION
 k8smaster   Ready      master   22m   v1.13.4
@@ -231,7 +231,7 @@ Your node is now in your cluster! Execute the same command on the second node.
 
 # Install Kubernetes Dashboard
 On your master server, install the Kubernetes dashboard by running the following commands.
-```shell
+```bash
 cluster@k8smaster:~$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
 secret/kubernetes-dashboard-certs created
 serviceaccount/kubernetes-dashboard created
@@ -244,7 +244,7 @@ Initialize the dashboard by creating a folder `.kubedashboard-config` on the mas
 - `admin-user.yml`
 - `admin-role.yml`
 
-```shell
+```bash
 mkdir ~/.kubedashboard-config
 cd ~/.kubedashboard-config
 touch admin-user.yml
@@ -274,14 +274,14 @@ subjects:
   namespace: kube-system
 ```
 Change your cluster configuration from the master using:
-```shell
+```bash
 cluster@k8smaster:~/.kubedashboard-config$ kubectl apply -f admin-user.yml
 serviceaccount/admin created
 cluster@k8smaster:~/.kubedashboard-config$ kubectl apply -f admin-role.yml
 clusterrolebinding.rbac.authorization.k8s.io/admin created
 ```
 To connect to your dashboard, retrieve your login token.
-```shell
+```bash
 cluster@k8smaster:~/.kubedashboard-config$ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 Name:         admin-user-token-8ncll
 Namespace:    kube-system
@@ -298,12 +298,12 @@ namespace:  11 bytes
 token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLThuY2xsIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI2MzRkYjkzOC0zZGQwLTExZTktODNlOS0wODAwMjczYTIzYjUiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.R5T_fighTe1vaZF_--gGlWEfd4zg8iv-E4DydXDKK02zI4jMD7DL6YMWyPVGZPkgeGznuM20DGe1Af_oYOpKaBAipsjTEChNLVrDiOAZvYUEMCjsmfg2HKz5iVT5e94zVG07MrSQqv7N4W7CL82SJElc8qMaJlmyOAavC1RHdvoBJTyMi4w3mp5IFPdYlXGXlw20qV6FfchgeXtpIGrB1RWc0kkMZgBm5cjTtDx4LEoqo3JIkCRqaeHZeWY2pd7XbXWUiyOAWj54BneMyghYftptFTx4nRUteS_RAAHU4dDum8jcOEjrDL-lVwJXfVgNTCDK5zz-IThnj1xmF9t9JA
 ```
 Copy the token and run the dashboard.
-```shell
+```bash
 cluster@k8smaster:~/.kubedashboard-config$ kubectl proxy
 Starting to serve on 127.0.0.1:8001
 ```
 Once the dashboard starts, create an ssh tunnel. AS the dashboard is unreachable outside of your cluster, create an ssh tunnel.
-```shell
+```bash
 ssh -L 8001:localhost:8001 cluster@k8smaster
 ```
 You can now log in to your dashboard on [localhost:8001](http://127.0.0.1:8001).
@@ -312,7 +312,7 @@ You can now log in to your dashboard on [localhost:8001](http://127.0.0.1:8001).
 
 ## Image creation
 Because it is a Kubernetes experimentation, I store the image on the k8smaster. Create a folder image, add an app.js and a Dockerfile.
-```shell
+```bash
 mkdir ~/image
 cd ~/image
 touch app.js
@@ -339,7 +339,7 @@ CMD node app.js
 ```
 
 Launch image creation.
-```shell
+```bash
 cluster@k8smaster:~/image$ docker build -t helloworld-k8s .
 Sending build context to Docker daemon  3.072kB
 Step 1/4 : FROM node
@@ -370,7 +370,7 @@ Successfully tagged helloworld-k8s:latest
 ```
 
 Once process ends, check your image state.
-```shell
+```bash
 cluster@k8smaster:~/image$ docker images
 REPOSITORY               TAG                 IMAGE ID            CREATED             SIZE
 helloworld-k8s           latest              61e6044df293        32 seconds ago      916MB
@@ -382,7 +382,7 @@ k8s.gcr.io/pause         3.1                 da86e6ba6ca1        14 months ago  
 
 ## Configure your deployment
 Create a folder k8s-deployment and a deployment.yml file. This file describes your cluster and contains all your cluster configuration.
-```shell
+```bash
 mkdir ~/k8s-deployment
 cd ~/k8s-deployment
 touch deployment.yml
@@ -412,7 +412,7 @@ spec:
 ```
 
 Launch deployment by executing the following command.
-```shell
+```bash
 cluster@k8smaster:~/k8s-deployment$ kubectl create -f deployment.yml
 deployment.apps/helloworld-k8s-deployment created
 ```

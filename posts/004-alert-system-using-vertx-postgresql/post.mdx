@@ -1,0 +1,457 @@
+---
+title: "Alert system using Vert.x and PostgreSQL pub/sub"
+date: "2021-01-06"
+path: "/alert-system-using-vertx-postgresql"
+technologies:
+  - vertx
+  - postgresql
+description: "Create a simple alert system using Vert.x and PostgreSQL. Simulate a basic fake banking application and implement a \"below zero\" alert system."
+---
+
+import Diagram from './diagram.png';
+
+With complex systems, you could need a system delegating tasks. Generally, you have two options : 
+- A cron running process recurrently;
+- A message broker - as RabbitMQ or Apache Kafka - triggering the process.
+
+These systems (especially a message broker) can be heavy and complicated in their implementation. 
+Otherwise, you can use a publisher-subscriber solution. Luckily, one of the most famous SQL databases contains an embedded pub/sub system since version 9.5: [PostgreSQL](https://www.postgresql.org/).
+<br />
+
+This article builds a basic banking application. Adding an operation on an account will trigger an alert system if the balance being below zero.
+<img src={Diagram} className="m-auto" />
+
+# Setting up project
+## Installation
+The implementation uses Docker, Java, and Vert.x (reactive application framework on the JVM). First, install [Java](https://openjdk.java.net/), [Maven](https://maven.apache.org/), and [Docker](https://www.docker.com/) on your machine. 
+To skip this step, I work remotely on my repository with [Github Codespace](https://github.com/features/codespaces).
+<br />
+
+Once your environment is ready, go on Vert.x starter page and generate a new project with the following information : 
+- Version: 4.0.0;
+- Language: Java;
+- Build system: Maven;
+- Dependencies: Vert.x Web and Reactive PostgreSQL Client.
+
+Download your started and add a docker-compose.yml file in the root folder:
+```yaml
+postgres:
+    image: postgres:9.5 
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pgas
+    ports:
+      - "5432:5432"
+```
+
+Then launch PostgreSQL: 
+```bash
+docker-compose up -d postgres
+```
+
+## Database schema
+Add a `database` folder in your root folder with a `db.sql` file :
+```bash
+mkdir database && touch database/db.sql
+```
+db.sql content file : 
+```sql
+CREATE TABLE account(
+    id bigserial PRIMARY KEY,
+    amount integer
+);
+
+CREATE TABLE operation(
+    id bigserial PRIMARY KEY,
+    amount integer,
+    account_id integer,
+    CONSTRAINT fk_account_id FOREIGN KEY (account_id) REFERENCES account (id) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+```
+Execute these two creation queries.
+
+# API REST creation
+Open your `MainVerticle.java` file, create a new HTTP server and set `BodyHandler` and `LoggerHandler` middlewares:
+```java
+@Override
+public void start(Promise<Void> startPromise) throws Exception {
+// Init Http server and its router
+HttpServer server = vertx.createHttpServer();
+Router router = Router.router(vertx);
+
+// Add request logger
+router.route().handler(LoggerHandler.create());
+
+// Enable request body handler
+router.route().handler(BodyHandler.create());
+
+// Start http server using router
+server.requestHandler(router).listen(8080);
+
+    // Complete verticle launch
+    startPromise.complete();
+}
+```
+Create a new controller folder with a new file named `AccountController.java`:
+```java
+public class AccountController {
+
+    private Logger log = LoggerFactory.getLogger(AccountController.class);
+
+    public AccountController(Router router) {
+        router.post("/accounts").handler(this::postAccount);
+        router.get("/accounts/:id").handler(this::getAccount);
+        router.post("/accounts/:id/operations").handler(this::postOperation);
+    }
+
+    private void getAccount(RoutingContext ctx) {
+        // Retrieve account balance
+    }
+
+    private void postAccount(RoutingContext ctx) {
+        // Create a new account
+    }
+
+    private void postOperation(RoutingContext ctx) {
+        // Send operation
+    }
+
+}
+```
+Instantiate a new AccountController in your main verticle:
+```java
+@Override
+public void start(Promise<Void> startPromise) throws Exception {
+//...
+// Enable request body handler
+router.route().handler(BodyHandler.create());
+
+    // Init account controller
+new AccountController(router, pgClient);
+
+    //...
+}
+```
+# Connect Vert.x to PostgreSQL
+Create two new methods in your main verticle:
+```java
+private PgPool initPg(Vertx vertx) {
+  PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
+
+  return PgPool.pool(vertx, pgConnectOptions(), poolOptions);
+}
+
+private PgConnectOptions pgConnectOptions() {
+  return new PgConnectOptions()
+                .setPort(5432)
+                .setHost("localhost")
+                .setDatabase("pgas")
+                .setUser("postgres")
+			    .setPassword("postgres");
+}
+```
+The first one initializes a PostgreSQL client, the second creates an object containing all PostgreSQL connect options.
+Connect Vert.x  to your PostgreSQL database by calling initPg in the start method. Add the PgPool object to your controller constructor.
+```java
+@Override
+public void start(Promise<Void> startPromise) throws Exception {
+    //...
+    Router router = Router.router(vertx);
+
+    // Init PostgreSQL client
+    PgPool pgClient = initPg(vertx);
+    //...
+
+    // Init account controller
+    new AccountController(router, pgClient);
+    //...
+}
+```
+Because we split the controller and database access object layer, create a new service AccountService in a service package:
+```java
+public class AccountService {
+
+    private PgPool pgClient;
+
+    public AccountService(PgPool pgClient) {
+        this.pgClient = pgClient;
+    }
+
+    /**
+     * Create a new account. It set the amount with
+     * 
+     * @param amount
+     * @return
+     */
+    public Future<JsonObject> createAccount(int amount) {
+        Promise<JsonObject> promise = Promise.promise();
+        pgClient.preparedQuery("INSERT INTO account(amount) VALUES ($1) RETURNING id").execute(Tuple.of(amount), ar -> {
+            if (ar.failed()) {
+                promise.fail(ar.cause());
+            } else {
+                promise.complete(PgResult.rowSetToJsonObject(ar.result()));
+            }
+        });
+
+        return promise.future();
+    }
+
+    /**
+     * Get account amount status
+     * 
+     * @param accountId Account identifier
+     * @return Future completing process
+     */
+    public Future<JsonObject> getAccount(int accountId) {
+        Promise<JsonObject> promise = Promise.promise();
+        pgClient.preparedQuery("SELECT amount FROM account WHERE id = $1").execute(Tuple.of(accountId), ar -> {
+            if (ar.failed()) {
+                promise.fail(ar.cause());
+            } else {
+                promise.complete(PgResult.rowSetToJsonObject(ar.result()));
+            }
+        });
+
+        return promise.future();
+    }
+
+    /**
+     * Add an operation on a specific account.
+     * 
+     * @param accountId Account identifier
+     * @param amount    Amount operation
+     * @return Future completing process
+     */
+    public Future<Void> addOperation(int accountId, int amount) {
+        Promise<Void> promise = Promise.promise();
+        pgClient.preparedQuery("INSERT INTO operation (amount, account_id) VALUES ($1, $2);")
+                .execute(Tuple.of(amount, accountId), ar -> {
+                    if (ar.failed()) {
+                        promise.fail(ar.cause());
+                    } else {
+                        promise.complete();
+                    }
+                });
+
+        return promise.future();
+    }
+}
+```
+Add PgPool object to your AccountController constructor and instantiate the service:
+```java
+private AccountService accountService;
+
+public AccountController(Router router, PgPool pgClient) {
+	accountService = new AccountService(pgClient);
+	//...
+}
+```
+The PostgreSQL client returns values with RowSet and Row object (see Vert.x Reactive PostgreSQL Client documentation). As we render content through a rest API, add this utility class transforming PostgreSQL result into a valid JSON content:
+```java
+public class PgResult {
+
+    private PgResult() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    private static List<JsonObject> jsonResult(RowSet<Row> rows) {
+        List<JsonObject> values = new ArrayList<>();
+        for (Row row : rows) {
+            values.add(transformToJsonObject(row, rows.columnsNames()));
+        }
+
+        return values;
+    }
+
+    public static JsonObject rowSetToJsonObject(RowSet<Row> rows) {
+        List<JsonObject> values = jsonResult(rows);
+        return !values.isEmpty() ? values.get(0) : null;
+    }
+
+    public static List<JsonObject> rowSetToList(RowSet<Row> rows) {
+        return jsonResult(rows);
+    }
+
+    private static JsonObject transformToJsonObject(Row row, List<String> columNames) {
+        JsonObject tuple = new JsonObject();
+        for (int i = 0; i < columNames.size(); i++) {
+            Object value = row.getValue(i);
+            if (value instanceof LocalDateTime)
+                value = row.getValue(i).toString();
+            tuple.put(columNames.get(i), value);
+        }
+
+        return tuple;
+    }
+
+}
+```
+
+# Connect the REST API to PostgreSQL
+Complete the REST endpoints with the following code:
+```java
+private void getAccount(RoutingContext ctx) {
+    try {
+        int accountId = Integer.parseInt(ctx.request().getParam("id"));
+        accountService.getAccount(accountId).onSuccess(res -> HttpUtils.ok(ctx.response(), res))
+                .onFailure(err -> HttpUtils.internalServerError(ctx.response(), err.getMessage()));
+    } catch (NumberFormatException e) {
+        HttpUtils.internalServerError(ctx.response(), "Unable to parse account identifier");
+    }
+}
+
+private void postAccount(RoutingContext ctx) {
+    JsonObject body = ctx.getBodyAsJson();
+
+    // Get account amount. In case of null amount, get 0
+    accountService.createAccount(body.getInteger("amount", 0))
+            .onSuccess(acc -> HttpUtils.created(ctx.response(), acc))
+            .onFailure(err -> HttpUtils.internalServerError(ctx.response(), err.getMessage()));
+}
+
+private void postOperation(RoutingContext ctx) {
+    try {
+        int accountId = Integer.parseInt(ctx.request().getParam("id"));
+        JsonObject body = ctx.getBodyAsJson();
+        Integer operationAmount = body.getInteger("amount");
+        log.info(String.format("Operation amount for %d account: %d", accountId, operationAmount));
+        accountService.addOperation(accountId, operationAmount)
+                .onSuccess(res -> HttpUtils.noContent(ctx.response()))
+                .onFailure(err -> HttpUtils.internalServerError(ctx.response(), err.getMessage()));
+    } catch (NumberFormatException e) {
+        log.error(String.format("Unable to parse account identifier. Expected integer, found %s",
+                ctx.request().getParam("id")), e);
+        HttpUtils.internalServerError(ctx.response(), "Unable to parse account identifier");
+    }
+}
+```
+Add another utility class managing HTTP responses :
+```java
+public class HttpUtils {
+
+    private HttpUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    private static void renderJson(HttpServerResponse response, int code, String value) {
+        response.putHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+                .putHeader(HttpHeaderNames.CACHE_CONTROL, HttpHeaderValues.NO_CACHE)
+                .putHeader(HttpHeaderNames.EXPIRES, "-1").setStatusCode(code).end(value);
+    }
+
+    public static void ok(HttpServerResponse response, JsonObject object) {
+        renderJson(response, HttpResponseStatus.OK.code(), object.encode());
+    }
+
+    public static void created(HttpServerResponse response, JsonObject object) {
+        renderJson(response, HttpResponseStatus.CREATED.code(), object.encode());
+    }
+
+    public static void noContent(HttpServerResponse response) {
+        response.putHeader(HttpHeaderNames.CACHE_CONTROL, HttpHeaderValues.NO_CACHE)
+                .putHeader(HttpHeaderNames.EXPIRES, "-1").setStatusCode(HttpResponseStatus.NO_CONTENT.code()).end();
+    }
+
+    public static void internalServerError(HttpServerResponse response, String error) {
+        JsonObject err = new JsonObject().put("error", error);
+        renderJson(response, HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), err.encode());
+    }
+}
+```
+
+# Managing account alerts
+The PgSubscriber class - from the PostgreSQL client - manage a subscriber connection listening to one or more channels. To create our system, we use a handler class listening events. Add an AlertHandler class in a handler package:
+```java
+public class AlertHandler {
+    private final Logger log = LoggerFactory.getLogger(AlertHandler.class);
+    private static final String SUBSCRIBER_NAME = "account_less_than_0";
+
+    public AlertHandler(PgSubscriber subscriber) {
+        subscriber.channel(SUBSCRIBER_NAME)
+                .handler(payload -> log.info(String.format("Receiving an alert: Account %s is less than 0", payload)));
+
+        subscriber.connect()
+                .onFailure(err -> log.error(String.format("Unable to connect subscriber %s", SUBSCRIBER_NAME), err));
+    }
+
+}
+```
+Instantiate your handler in your main verticle :
+```java
+@Override
+public void start(Promise<Void> startPromise) throws Exception {
+	//...    
+  // Init account controller
+  new AccountController(router, pgClient);
+
+  // Init alert handler
+  new AlertHandler(pgSubscriber(vertx));
+	//...
+}
+
+private PgSubscriber pgSubscriber(Vertx vertx) {
+  return PgSubscriber.subscriber(vertx, pgConnectOptions());
+}
+```
+Add a SQL trigger calling a function after insert on operation table:
+```sql
+CREATE OR REPLACE FUNCTION trigger_amount_process() RETURNS TRIGGER AS 
+    $BODY$
+        DECLARE 
+            amount_number integer;
+        BEGIN
+            UPDATE account SET amount = amount + NEW.amount WHERE id = NEW.account_id RETURNING amount INTO amount_number;
+            IF amount_number < 0 THEN
+                PERFORM pg_notify('account_less_than_0', NEW.account_id::text);
+            END IF;
+
+            RETURN NEW;
+        END
+    $BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_amount_process AFTER INSERT ON operation FOR EACH ROW EXECUTE PROCEDURE trigger_amount_process();
+```
+
+# Try it
+Launch our application:
+```bash
+./mvnw clean compile exec:java
+```
+Add an account:
+```bash
+curl -d "{\"amount\": 100}" -H "Content-Type: application/json" -X POST http://localhost:8080/accounts
+```
+Send some operations:
+```bash
+curl -d "{\"amount\": -10}" -H "Content-Type: application/json" -X POST http://localhost:8080/accounts/1/operations
+curl -d "{\"amount\": -15}" -H "Content-Type: application/json" -X POST http://localhost:8080/accounts/1/operations
+curl -d "{\"amount\": -50}" -H "Content-Type: application/json" -X POST http://localhost:8080/accounts/1/operations
+curl -d "{\"amount\": -50}" -H "Content-Type: application/json" -X POST http://localhost:8080/accounts/1/operations
+```
+You should see multiple logs like the following example:
+```java
+Jan 04, 2021 4:17:32 PM fr.sledunois.pgas.controller.AccountController
+INFO: Operation amount for 1 account: -10
+Jan 04, 2021 4:17:32 PM io.vertx.ext.web.handler.impl.LoggerHandlerImpl
+INFO: 0:0:0:0:0:0:0:1 - - [Mon, 4 Jan 2021 16:17:32 GMT] "POST /accounts/1/operations HTTP/1.1" 204 0 "-" "curl/7.68.0"
+Jan 04, 2021 4:17:35 PM fr.sledunois.pgas.controller.AccountController
+INFO: Operation amount for 1 account: -15
+Jan 04, 2021 4:17:35 PM io.vertx.ext.web.handler.impl.LoggerHandlerImpl
+INFO: 0:0:0:0:0:0:0:1 - - [Mon, 4 Jan 2021 16:17:35 GMT] "POST /accounts/1/operations HTTP/1.1" 204 0 "-" "curl/7.68.0"
+Jan 04, 2021 4:17:37 PM fr.sledunois.pgas.controller.AccountController
+INFO: Operation amount for 1 account: -50
+Jan 04, 2021 4:17:37 PM io.vertx.ext.web.handler.impl.LoggerHandlerImpl
+INFO: 0:0:0:0:0:0:0:1 - - [Mon, 4 Jan 2021 16:17:37 GMT] "POST /accounts/1/operations HTTP/1.1" 204 0 "-" "curl/7.68.0"
+Jan 04, 2021 4:17:39 PM fr.sledunois.pgas.controller.AccountController
+INFO: Operation amount for 1 account: -50
+Jan 04, 2021 4:17:39 PM io.vertx.ext.web.handler.impl.LoggerHandlerImpl
+INFO: 0:0:0:0:0:0:0:1 - - [Mon, 4 Jan 2021 16:17:39 GMT] "POST /accounts/1/operations HTTP/1.1" 204 0 "-" "curl/7.68.0"
+Jan 04, 2021 4:17:39 PM fr.sledunois.pgas.handler.AlertHandler
+INFO: Receiving an alert: Account 1 is less than 0
+```
+After sending your last operation, your PostgreSQL database triggered our system and called the AlertHandler class. It works!
+<br />
+
+Find entire code on my [Github repository](https://github.com/SLedunois/pg-alert-system).
